@@ -1,0 +1,35 @@
+---
+layout: none
+---
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+  <body>
+
+<div class="chapter">
+
+  <header class="chapter-header">
+    <h1 class="chapter-title">{{ page.title }}</h1>
+    <p class="chapter-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
+{%comment%}
+    {% if page.authordd-bio %}
+      <p>{{ page.author-bio | markdownify }}</p>
+    {% endif %}
+{%endcomment%}
+  </header>
+
+  <article class="post-content">
+    {% if page.prologue %}
+      <div class="prologue">{{ page.prologue | markdownify }}</div>
+      <hr/>
+    {% endif %}
+
+    {{ content }}
+  </article>
+
+</div>
+  </body>
+
+</html>
