@@ -18,14 +18,33 @@ require 'mechanize'
 def testing()
   mechanize = Mechanize.new
   page = mechanize.get('http://magic.wizards.com/en/articles/archive/ajanis-vengeance-2014-07-23')
-  puts "Page title: #{page.title}"
+  filename = get_filename(page)
+  puts "Filename: #{filename}"
+  puts get_file_contents(page)
+end
+
+def get_story(url)
+  mechanize = Mechanize.new
+  page = mechanize.get(url)
+  filename = '_posts/' + get_filename(page)
+  contents = get_file_contents(page)
+  file = File.open(filename, 'w')
+  file.puts contents
+  file.close
+end
+
+def get_filename(page)
+  title = page.canonical_uri.path.split('/').last
+  matches = /^(.*)-(\d\d\d\d-\d\d-\d\d)/.match(title)
+  return matches[2] + '-' + matches[1] + '.markdown'
+end
+
+def get_file_contents(page)
   headers = get_headers(page)
   contents_element = page.at('article #content-detail-page-of-an-article')
   contents = PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
 
-  puts headers.to_yaml
-  puts '---'
-  puts contents
+  return headers.to_yaml + "---\n\n" + contents
 end
 
 def get_headers(page)
@@ -58,3 +77,4 @@ end
 
 
 testing()
+get_story('http://magic.wizards.com/en/articles/archive/uncharted-realms/jaces-origin-absent-minds-2015-06-24')
