@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 
 require 'yaml'
 require 'pandoc-ruby'
@@ -15,12 +16,12 @@ require 'mechanize'
 #   author-bio: {html contents of article .article-header #author-biography p}
 #   prologue: {not always present, and within the content when it exists}
 
-def testing()
+def testing(url)
   mechanize = Mechanize.new
-  page = mechanize.get('http://magic.wizards.com/en/articles/archive/ajanis-vengeance-2014-07-23')
+  page = mechanize.get(url)
   filename = get_filename(page)
   puts "Filename: #{filename}"
-  puts get_file_contents(page)
+  puts get_headers(page).to_yaml
 end
 
 def get_story(url)
@@ -44,7 +45,7 @@ def get_file_contents(page)
   contents_element = page.at('article #content-detail-page-of-an-article')
   contents = PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
 
-  return headers.to_yaml + "---\n\n" + contents
+  return headers.to_yaml + "---\n\n" + contents.chomp('')
 end
 
 def get_headers(page)
@@ -73,8 +74,9 @@ def get_headers(page)
   return headers
 end
 
+# Bit nasty, but should do the job
+if (ARGV[0])
+  #testing(ARGV[0])
+  get_story(ARGV[0])
+end
 
-
-
-testing()
-get_story('http://magic.wizards.com/en/articles/archive/uncharted-realms/jaces-origin-absent-minds-2015-06-24')
