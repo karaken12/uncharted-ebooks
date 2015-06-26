@@ -94,10 +94,10 @@ def get_headers(page)
     headers['author-pic'] = author_pic
   end
   if author_bio != ''
-    headers['author-bio'] = author_bio
+    headers['author-bio'] = author_bio + "\n"
   end
   if prologue != nil && prologue != ''
-    headers['prologue'] = prologue
+    headers['prologue'] = prologue + "\n"
   end
   headers['url'] = url
   return headers
@@ -105,6 +105,7 @@ end
 
 def get_prologue(article)
   elements = []
+  committed = []
   stuff = article.at('p')
   while true
     if stuff.name == 'p'
@@ -112,13 +113,24 @@ def get_prologue(article)
         child = stuff.first_element_child
         if child == nil || (child.name != 'i' && child.name != 'em')
           break
-        else
-          child.replace(child.inner_html)
         end
       end
     end
     elements.push(stuff)
+    if stuff.name == 'hr'
+      committed.concat(elements)
+      elements = []
+    end
     stuff = stuff.next_element
+  end
+
+  if committed.length == 0
+    return nil
+  end
+
+  elements = []
+  committed.each do |element|
+    elements.push(de_italic(element))
   end
 
   # Get rid of a trailing hr
@@ -138,6 +150,19 @@ def get_prologue(article)
   end
 
   return PandocRuby.convert(html, :from=>:html, :to=>:markdown).chomp('')
+end
+
+def de_italic(element)
+  if element.name != 'p' || element.children.length == 0 || element.first_element_child == nil
+    return element
+  end
+  child = element.first_element_child
+  if child.name != 'i' && child.name != 'em'
+    return element
+  else
+    child.replace(child.inner_html)
+    return element
+  end
 end
 
 if __FILE__==$0
