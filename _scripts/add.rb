@@ -65,7 +65,7 @@ def remove_trailers(contents)
         last.unlink
         keep_going = true
       else
-        if last.content == "Find more official Magic fiction on the Uncharted Realms page."
+        if last.content.strip == "Find more official Magic fiction on the Uncharted Realms page."
           last.unlink
           keep_going = true
         end
@@ -111,7 +111,7 @@ def get_prologue(article)
     if stuff.name == 'p'
       if stuff.children.length > 0
         child = stuff.first_element_child
-        if child == nil || (child.name != 'i' && child.name != 'em')
+        if child == nil || (child.name != 'i' && child.name != 'em' && child.name != 'img')
           break
         end
       end
@@ -153,16 +153,24 @@ def get_prologue(article)
 end
 
 def de_italic(element)
-  if element.name != 'p' || element.children.length == 0 || element.first_element_child == nil
+  if element.children.length == 0 || element.first_element_child == nil
     return element
   end
-  child = element.first_element_child
-  if child.name != 'i' && child.name != 'em'
-    return element
-  else
-    child.replace(child.inner_html)
-    return element
+  element.children.each do |child|
+    if child.element?
+      if child.name == 'i' || child.name == 'em'
+        child.replace(child.inner_html)
+      else
+        de_italic(child)
+      end
+    elsif child.text?
+      if child.inner_text.strip.length > 0
+        # Peversely, we actually want to emphasise this.
+        child.replace('<em>'+child.inner_text+'</em>')
+      end
+    end
   end
+  return element
 end
 
 if __FILE__==$0
