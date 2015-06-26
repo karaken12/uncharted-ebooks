@@ -22,6 +22,7 @@ def testing(url)
   filename = get_filename(page)
   puts "Filename: #{filename}"
   puts get_headers(page).to_yaml
+  contents = get_contents(page)
 end
 
 def get_story(url)
@@ -42,32 +43,60 @@ end
 
 def get_file_contents(page)
   headers = get_headers(page)
-  contents_element = page.at('article #content-detail-page-of-an-article')
-  contents = PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
-
+  contents = get_contents(page)
   return headers.to_yaml + "---\n\n" + contents.chomp('')
+end
+
+def get_contents(page)
+  contents_element = page.at('article #content-detail-page-of-an-article')
+  # Remove traling stuff if it exists
+  remove_trailers(contents_element)
+  return PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
+end
+
+def remove_trailers(contents)
+  keep_going = true
+  while(keep_going)
+    keep_going = false
+    last = contents.last_element_child
+    if last.name == 'p'
+      if last.children.length == 0
+        # An empty paragraph; unlink and continue
+        last.unlink
+        keep_going = true
+      else
+        if last.content == "Find more official Magic fiction on the Uncharted Realms page."
+          last.unlink
+          keep_going = true
+        end
+      end
+    elsif last.name == 'hr'
+      last.unlink
+      keep_going = true
+    end
+  end
 end
 
 def get_headers(page)
   url = page.canonical_uri.to_s
-  title = page.at('#main-content h1').text
-  author = page.at('article .article-header .author p').text.sub(/^By /i,'')
-  author_pic = page.at('article .article-header .author img').attributes['src'].to_s
+  title = page.at('#main-content h1').text.chomp('')
+  author = page.at('article .article-header .author p').text.sub(/^By /i,'').chomp('')
+  author_pic = page.at('article .article-header .author img').attributes['src'].to_s.chomp('')
   bio_element = page.at('article .article-header #author-biography')
-  author_bio = PandocRuby.convert(bio_element.to_html, :from=>:html, :to=>:markdown)
+  author_bio = PandocRuby.convert(bio_element.to_html, :from=>:html, :to=>:markdown).chomp('')
   prologue = get_prologue(page.at('article #content-detail-page-of-an-article'))
   
   headers = {}
   headers['layout'] = 'chapter'
   headers['title'] = title
   headers['author'] = author
-  if author_pic
+  if author_pic != ''
     headers['author-pic'] = author_pic
   end
-  if author_bio
+  if author_bio != ''
     headers['author-bio'] = author_bio
   end
-  if prologue
+  if prologue != nil && prologue != ''
     headers['prologue'] = prologue
   end
   headers['url'] = url
@@ -80,7 +109,7 @@ def get_prologue(article)
   while (stuff.name == 'p')
     if stuff.children.length > 0
       child = stuff.first_element_child
-      if child.name != 'i' && child.name != 'em'
+      if child == nil || (child.name != 'i' && child.name != 'em')
         return nil
       else
         child.replace(child.inner_html)
@@ -99,9 +128,10 @@ def get_prologue(article)
   return PandocRuby.convert(html, :from=>:html, :to=>:markdown).chomp('')
 end
 
-# Bit nasty, but should do the job
-if (ARGV[0])
-  #testing(ARGV[0])
-  get_story(ARGV[0])
+if __FILE__==$0
+  # Bit nasty, but should do the job
+  if (ARGV[0])
+    #testing(ARGV[0])
+    get_story(ARGV[0])
+  end
 end
-
