@@ -106,24 +106,36 @@ end
 def get_prologue(article)
   elements = []
   stuff = article.at('p')
-  while (stuff.name == 'p')
-    if stuff.children.length > 0
-      child = stuff.first_element_child
-      if child == nil || (child.name != 'i' && child.name != 'em')
-        return nil
-      else
-        child.replace(child.inner_html)
+  while true
+    if stuff.name == 'p'
+      if stuff.children.length > 0
+        child = stuff.first_element_child
+        if child == nil || (child.name != 'i' && child.name != 'em')
+          break
+        else
+          child.replace(child.inner_html)
+        end
       end
     end
     elements.push(stuff)
     stuff = stuff.next_element
   end
+
+  # Get rid of a trailing hr
+  elements.reverse.each do |element|
+    if element.name == 'hr' || (element.name == 'p' && element.children.length == 0)
+      element.unlink
+      elements.pop
+    else
+      break
+    end
+  end
+
   html = ''
   elements.each do |element|
     html += element.to_html
     element.unlink
   end
-  stuff.unlink
 
   return PandocRuby.convert(html, :from=>:html, :to=>:markdown).chomp('')
 end
