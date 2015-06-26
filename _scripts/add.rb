@@ -79,10 +79,11 @@ def get_prologue(article)
   stuff = article.at('p')
   while (stuff.name == 'p')
     if stuff.children.length > 0
-      if stuff.first_element_child.name != 'i'
+      child = stuff.first_element_child
+      if child.name != 'i' && child.name != 'em'
         return nil
       else
-        stuff.first_element_child.replace(stuff.first_element_child.inner_html)
+        child.replace(child.inner_html)
       end
     end
     elements.push(stuff)
