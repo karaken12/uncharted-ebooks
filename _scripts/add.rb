@@ -55,7 +55,7 @@ def get_headers(page)
   author_pic = page.at('article .article-header .author img').attributes['src'].to_s
   bio_element = page.at('article .article-header #author-biography')
   author_bio = PandocRuby.convert(bio_element.to_html, :from=>:html, :to=>:markdown)
-  #prologue = 
+  prologue = get_prologue(page.at('article #content-detail-page-of-an-article'))
   
   headers = {}
   headers['layout'] = 'chapter'
@@ -67,11 +67,35 @@ def get_headers(page)
   if author_bio
     headers['author-bio'] = author_bio
   end
+  if prologue
+    headers['prologue'] = prologue
+  end
   headers['url'] = url
-  #if prologue
-  #  headers['prologue'] = prologue
-  #end
   return headers
+end
+
+def get_prologue(article)
+  elements = []
+  stuff = article.at('p')
+  while (stuff.name == 'p')
+    if stuff.children.length > 0
+      if stuff.first_element_child.name != 'i'
+        return nil
+      else
+        stuff.first_element_child.replace(stuff.first_element_child.inner_html)
+      end
+    end
+    elements.push(stuff)
+    stuff = stuff.next_element
+  end
+  html = ''
+  elements.each do |element|
+    html += element.to_html
+    element.unlink
+  end
+  stuff.unlink
+
+  return PandocRuby.convert(html, :from=>:html, :to=>:markdown).chomp('')
 end
 
 # Bit nasty, but should do the job
