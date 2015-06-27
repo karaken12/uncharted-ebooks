@@ -173,10 +173,25 @@ def de_italic(element)
   return element
 end
 
+def get_loop()
+  while(true)
+    puts "==="
+    # Ask for URL
+    print "Enter story URL: "
+    url = STDIN.gets.chomp
+    if url == '' then return end
+    get_story(url)
+  end
+end
+
 if __FILE__==$0
   # Bit nasty, but should do the job
   if (ARGV[0])
-    #testing(ARGV[0])
-    get_story(ARGV[0])
+    if ARGV[0] == '-'
+      get_loop()
+    else
+      #testing(ARGV[0])
+      get_story(ARGV[0])
+    end
   end
 end
