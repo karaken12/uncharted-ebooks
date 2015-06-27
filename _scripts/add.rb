@@ -80,23 +80,37 @@ end
 def get_headers(page)
   url = page.canonical_uri.to_s
   title = page.at('#main-content h1').text.chomp('')
-  author = page.at('article .article-header .author p').text.sub(/^By /i,'').chomp('')
-  author_pic = page.at('article .article-header .author img').attributes['src'].to_s.chomp('')
-  bio_element = page.at('article .article-header #author-biography')
-  author_bio = PandocRuby.convert(bio_element.to_html, :from=>:html, :to=>:markdown).chomp('')
+
+  author_e = page.at('article .article-header .author p')
+  if author_e
+    author = author_e.text.sub(/^By /i,'').chomp('')
+  end
+
+  author_pic_e = page.at('article .article-header .author img')
+  if author_pic_e
+    author_pic = author_pic_e.attributes['src'].to_s.chomp('')
+  end
+
+  bio_e = page.at('article .article-header #author-biography')
+  if bio_e
+    author_bio = PandocRuby.convert(bio_e.to_html, :from=>:html, :to=>:markdown).chomp('')
+  end
+
   prologue = get_prologue(page.at('article #content-detail-page-of-an-article'))
   
   headers = {}
   headers['layout'] = 'chapter'
   headers['title'] = title
-  headers['author'] = author
-  if author_pic != ''
+  if author && author != ''
+    headers['author'] = author
+  end
+  if author_pic && author_pic != ''
     headers['author-pic'] = author_pic
   end
-  if author_bio != ''
+  if author_bio && author_bio != ''
     headers['author-bio'] = author_bio + "\n"
   end
-  if prologue != nil && prologue != ''
+  if prologue && prologue != ''
     headers['prologue'] = prologue + "\n"
   end
   headers['url'] = url
@@ -108,10 +122,11 @@ def get_prologue(article)
   committed = []
   stuff = article.at('p')
   while true
+    if !stuff then break end
     if stuff.name == 'p'
       if stuff.children.length > 0
-        child = stuff.first_element_child
-        if child == nil || (child.name != 'i' && child.name != 'em' && child.name != 'img')
+        child = stuff.children.first
+        if !(child.element?) || (child.name != 'i' && child.name != 'em' && child.name != 'img')
           break
         end
       end
