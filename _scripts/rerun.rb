@@ -7,7 +7,7 @@ require_relative 'add'
 # Then run the other script
 
 def get_url(filename)
-  return YAML.load_file(filename)['url']
+  return YAML.load_file(filename)['original-url']
 end
 
 def rerun(filename)

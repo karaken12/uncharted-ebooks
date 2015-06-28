@@ -113,7 +113,7 @@ def get_headers(page)
   if prologue && prologue != ''
     headers['prologue'] = prologue + "\n"
   end
-  headers['url'] = url
+  headers['original-url'] = url
   return headers
 end
 
