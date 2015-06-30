@@ -38,7 +38,11 @@ end
 def get_filename(page)
   title = page.canonical_uri.path.split('/').last
   matches = /^(.*)-(\d\d\d\d-\d\d-\d\d)/.match(title)
-  return matches[2] + '-' + matches[1] + '.markdown'
+  if !matches
+    return title + '.markdown'
+  else
+    return matches[2] + '-' + matches[1] + '.markdown'
+  end
 end
 
 def get_file_contents(page)
