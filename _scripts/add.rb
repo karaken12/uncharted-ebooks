@@ -55,6 +55,18 @@ def get_contents(page)
   contents_element = page.at('article #content-detail-page-of-an-article')
   # Remove traling stuff if it exists
   remove_trailers(contents_element)
+  # Do a little rewriting to allow Pandoc to read the markup.
+  contents_element.search('ul').each do |ul_el|
+    if ul_el.first_element_child && ul_el.first_element_child.name == 'li'
+    else
+      ul_el.name = 'p'
+    end
+  end
+  contents_element.search('pre').each do |pre_el|
+    if pre_el.first_element_child && pre_el.first_element_child.name == 'img'
+      pre_el.replace(pre_el.inner_html)
+    end
+  end
   return PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
 end
 

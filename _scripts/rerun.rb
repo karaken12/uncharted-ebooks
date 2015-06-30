@@ -11,6 +11,7 @@ def get_url(filename)
 end
 
 def rerun(filename)
+  puts "Rerunning on #{filename}"
   url = get_url(filename)
   if url == nil
     puts "File #{filename} does not have a URL!"
@@ -22,13 +23,18 @@ end
 # ---
 
 if (ARGV[0])
+  start_time = Time.now
   if ARGV[0] == "all" then
     Dir.foreach("_posts") do |fname|
       if fname == '.' || fname == '..' then next end
       rerun("_posts/" + fname)
     end
   else
-    rerun(ARGV[0])
+    ARGV.each do |fname|
+      rerun(fname)
+    end
   end
+  end_time = Time.now
+  puts " = Time spent: #{end_time - start_time}s"
 end
 
