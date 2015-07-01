@@ -137,12 +137,12 @@ module OldMagicArticleScraper
       author_pic = author_pic.to_s
     end
 
-    bio_e = page.at('article .article-header #author-biography')
-    if bio_e
-      author_bio = PandocRuby.convert(bio_e.to_html, :from=>:html, :to=>:markdown).strip
-    end
+    #bio_e = page.at('article .article-header #author-biography')
+    #if bio_e
+    #  author_bio = PandocRuby.convert(bio_e.to_html, :from=>:html, :to=>:markdown).strip
+    #end
 
-    #prologue = get_prologue(page.at('article #content-detail-page-of-an-article'))
+    prologue = get_prologue(page.at('#content .article-content'))
     
     headers = {}
     headers['layout'] = 'chapter'
@@ -156,12 +156,12 @@ module OldMagicArticleScraper
     if author_pic && author_pic != ''
       headers['author-pic'] = author_pic
     end
-    if author_bio && author_bio != ''
-      headers['author-bio'] = author_bio + "\n"
-    end
-    #if prologue && prologue != ''
-    #  headers['prologue'] = prologue + "\n"
+    #if author_bio && author_bio != ''
+    #  headers['author-bio'] = author_bio + "\n"
     #end
+    if prologue && prologue != ''
+      headers['prologue'] = prologue + "\n"
+    end
     headers['original-url'] = page.uri.to_s
     return headers
   end
@@ -175,7 +175,10 @@ module OldMagicArticleScraper
       if stuff.name == 'p'
         if stuff.children.length > 0
           child = stuff.children.first
-          if !(child.element?) || (child.name != 'i' && child.name != 'em' && child.name != 'img')
+          if child.text? && child.text.strip == ''
+            child = child.next
+          end
+          if !child || !(child.element?) || (child.name != 'i' && child.name != 'em' && child.name != 'img')
             break
           end
         end

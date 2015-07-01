@@ -60,6 +60,23 @@ module MagicArticleScraper
         pre_el.replace(pre_el.inner_html)
       end
     end
+    # No need for breaks after an hr
+    contents_element.search('hr').each do |hr_el|
+      next_el = hr_el.next
+      while (next_el)
+        if next_el.element? && next_el.name == 'br'
+          to_remove = next_el
+          next_el = next_el.next
+          to_remove.unlink
+          next
+        elsif next_el.text? && next_el.text.strip == ''
+          next_el = next_el.next
+          next
+        else
+          break
+        end
+      end
+    end
     return PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
   end
 
