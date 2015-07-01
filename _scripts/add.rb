@@ -1,12 +1,14 @@
 #!/usr/bin/env ruby
 
 require_relative 'MagicArticleScraper'
+require_relative 'OldMagicArticleScraper'
 
 def get_story(url)
   if URI(url).host == "magic.wizards.com"
     return MagicArticleScraper.get_story(url)
-  #elsif URI(url).host == "archive.wizards.com"
-  #  return OldMagicArticleScraper.get_story(url)
+  elsif URI(url).host == "archive.wizards.com"
+    return OldMagicArticleScraper.get_story(url)
+    #return OldMagicArticleScraper.testing(url)
   else
     puts "Unknown host!"
     return
