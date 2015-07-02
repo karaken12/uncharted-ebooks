@@ -21,6 +21,7 @@ module OldMagicArticleScraper
   def self.get_story(url)
     mechanize = Mechanize.new
     page = mechanize.get(url)
+    clean_markup(page)
     headers = get_headers(page)
     filename = '_posts/' + get_filename(headers)
     contents = get_file_contents(headers, get_contents(page))
@@ -32,6 +33,7 @@ module OldMagicArticleScraper
   def self.testing(url)
     mechanize = Mechanize.new
     page = mechanize.get(url)
+    clean_markup(page)
     headers = get_headers(page)
     filename = '_posts/' + get_filename(headers)
     puts "URL: #{url}"
@@ -41,7 +43,12 @@ module OldMagicArticleScraper
   end
 
   def self.get_filename(headers)
-    slug = headers['title'].downcase.gsub(/[^ a-z0-9]/,'').gsub(' ','-')
+    slug = headers['title'].downcase
+    ['of','the','a','for','in'].each do |word|
+      slug = slug.gsub(/\b#{word}\b/,'')
+    end
+    slug = slug.gsub(/  +/,' ').gsub(/^ /,'')
+    slug = slug.gsub(/[^ a-z0-9]/,'').gsub(' ','-')
     return "#{headers['date']}-#{slug}.markdown"
   end
 
@@ -49,13 +56,12 @@ module OldMagicArticleScraper
     return headers.to_yaml + "---\n\n" + contents.chomp('')
   end
 
-  def self.get_contents(page)
+  def self.clean_markup(page)
     contents_element = page.at('#content .article-content')
-    # Remove traling stuff if it exists
-    remove_trailers(contents_element)
     # Do a little rewriting to allow Pandoc to read the markup.
     # Change Javascript card links to regular links
-    contents_element.search('a.nodec').each do |a_el|
+    contents_element.search('a').each do |a_el|
+      if !a_el['keyname'] then next end
       href = "http://gatherer.wizards.com/Pages/Card/Details.aspx?#{a_el['keyname']}=#{a_el['keyvalue'].gsub('_','+')}"
       #a_el.replace("<a href=\"#{href}\">#{a_el.inner_html}</a>")
       a_el['href'] = href
@@ -67,23 +73,50 @@ module OldMagicArticleScraper
         img_el.replace(match[1])
       end
     end
-    # No need for breaks after an hr
-    contents_element.search('hr').each do |hr_el|
-      next_el = hr_el.next
-      while (next_el)
-        if next_el.element? && next_el.name == 'br'
-          to_remove = next_el
-          next_el = next_el.next
-          to_remove.unlink
-          next
-        elsif next_el.text? && next_el.text.strip == ''
-          next_el = next_el.next
-          next
-        else
-          break
-        end
-      end
-    end
+#    contents_element.search('div').each do |div_el|
+#      div_el.replace(div_el.inner_html)
+#    end
+#    # Get rid of unnecessary divs
+#    contents_element.search('div').each do |div_el|
+#      remove = true
+#      img_el = nil
+#      div_el.children.each do |child|
+#        if child.text? && child.text.strip == ''
+#          next
+#        elsif child.element? && child.name == 'img' && img_el == nil
+#          img_el = child
+#          next
+#        else
+#          remove = false
+#          break
+#        end
+#      end
+#      if remove
+#        if img_el
+#          div_el.replace(img_el.to_html)
+#        else
+#          div_el.unlink
+#        end
+#      end
+#    end
+    contents_element.search('br + br').each {|br_el| br_el.unlink}
+    contents_element.search('p + br').each {|br_el| br_el.unlink}
+    contents_element.search('div + br').each {|br_el| br_el.unlink}
+    contents_element.search('hr + br').each {|br_el| br_el.unlink}
+    contents_element.search('img + br').each {|br_el| br_el.unlink}
+    contents_element.search('h1 + br').each {|br_el| br_el.unlink}
+    contents_element.search('h2 + br').each {|br_el| br_el.unlink}
+    contents_element.search('h3 + br').each {|br_el| br_el.unlink}
+    ## No need for breaks after an hr
+    #contents_element.search('hr').each do |hr_el|
+    #  remove_breaks(hr_el)
+    #end
+    ## Similarly for img
+    #contents_element.search('img').each do |img_el|
+    #  remove_breaks(img_el)
+    #end
+    #contents_element.search('h3').each { |h_el| remove_breaks(h_el) }
+    #contents_element.search('div').each { |h_el| remove_breaks(h_el) }
     #contents_element.search('ul').each do |ul_el|
     #  if ul_el.first_element_child && ul_el.first_element_child.name == 'li'
     #  else
@@ -95,6 +128,42 @@ module OldMagicArticleScraper
     #    pre_el.replace(pre_el.inner_html)
     #  end
     #end
+  end
+
+  def self.remove_breaks(element)
+    next_el = element.next
+    while (next_el)
+      if next_el.element? && next_el.name == 'br'
+        to_remove = next_el
+        next_el = next_el.next
+        to_remove.unlink
+        next
+      elsif next_el.text? && next_el.text.strip == ''
+        next_el = next_el.next
+        next
+      else
+        break
+      end
+    end
+    prev_el = element.previous
+    while (prev_el)
+      if prev_el.element? && prev_el.name == 'br'
+        to_remove = prev_el
+        prev_el = prev_el.previous
+        next
+      elsif prev_el.text? && prev_el.text.strip == ''
+        prev_el = prev_el.previous
+        next
+      else
+        break
+      end
+    end
+  end
+
+  def self.get_contents(page)
+    contents_element = page.at('#content .article-content')
+    # Remove traling stuff if it exists
+    #remove_trailers(contents_element)
     return PandocRuby.convert(contents_element.to_html, :from=>:html, :to=>:markdown)
   end
 
@@ -202,7 +271,7 @@ module OldMagicArticleScraper
 
     # Get rid of a trailing hr
     elements.reverse.each do |element|
-      if element.name == 'hr' || (element.name == 'p' && element.children.length == 0)
+      if element.name == 'hr' || (element.name == 'p' && element.children.length == 0) || element.name == 'br'
         element.unlink
         elements.pop
       else
