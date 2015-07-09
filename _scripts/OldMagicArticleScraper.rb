@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'open-uri'
 require 'yaml'
 require 'pandoc-ruby'
 require 'mechanize'
@@ -19,15 +20,32 @@ require 'mechanize'
 module OldMagicArticleScraper
 
   def self.get_story(url)
-    mechanize = Mechanize.new
-    page = mechanize.get(url)
+    data = open(url).read
+    data = tidy_html(data)
+    page = Nokogiri::HTML(data)
     clean_markup(page)
-    headers = get_headers(page)
+    headers = get_headers(page, url)
     filename = '_posts/' + get_filename(headers)
     contents = get_file_contents(headers, get_contents(page))
     file = File.open(filename, 'w')
     file.puts contents
     file.close
+  end
+
+  def self.tidy_html(data)
+    cleaned = nil
+    tidy = IO.popen('tidy -f "_log/tidy.log" --force-output yes -wrap 0 -utf8', 'w+')
+    begin
+        tidy.write(data)
+        tidy.close_write
+        cleaned = tidy.read
+        tidy.close_read
+    rescue Errno::EPIPE
+        $stderr.print "Running 'tidy' failed: " + $!
+        tidy.close
+    end
+    return cleaned if cleaned and cleaned != ""
+    return data
   end
 
   def self.testing(url)
@@ -59,12 +77,27 @@ module OldMagicArticleScraper
   def self.clean_markup(page)
     contents_element = page.at('#content .article-content')
     # Do a little rewriting to allow Pandoc to read the markup.
+    # There are font tage all over the shop
+    contents_element.search('font').each {|fr_el| fr_el.replace(fr_el.inner_html)}
     # Change Javascript card links to regular links
     contents_element.search('a').each do |a_el|
       if !a_el['keyname'] then next end
       href = "http://gatherer.wizards.com/Pages/Card/Details.aspx?#{a_el['keyname']}=#{a_el['keyvalue'].gsub('_','+')}"
       #a_el.replace("<a href=\"#{href}\">#{a_el.inner_html}</a>")
       a_el['href'] = href
+    end
+    contents_element.search('a').each do |a_el|
+      if a_el.children.length == 0
+        after = a_el.next
+        if after.text? && after.text.strip == ''
+          after = after.next
+        end
+        if after.element? && after.name == 'div'
+          a_el.inner_html = after.inner_html
+          after.inner_html = a_el.to_html
+          a_el.unlink
+        end
+      end
     end
     # Remove the dropcap
     contents_element.search('img').each do |img_el|
@@ -73,33 +106,17 @@ module OldMagicArticleScraper
         img_el.replace(match[1])
       end
     end
-#    contents_element.search('div').each do |div_el|
-#      div_el.replace(div_el.inner_html)
-#    end
-#    # Get rid of unnecessary divs
-#    contents_element.search('div').each do |div_el|
-#      remove = true
-#      img_el = nil
-#      div_el.children.each do |child|
-#        if child.text? && child.text.strip == ''
-#          next
-#        elsif child.element? && child.name == 'img' && img_el == nil
-#          img_el = child
-#          next
-#        else
-#          remove = false
-#          break
-#        end
-#      end
-#      if remove
-#        if img_el
-#          div_el.replace(img_el.to_html)
-#        else
-#          div_el.unlink
-#        end
-#      end
-#    end
-    contents_element.search('br + br').each {|br_el| br_el.unlink}
+    #contents_element.search('br + br').each {|br_el| br_el.unlink}
+    contents_element.search('br').each do |br_el|
+      next_el = br_el.next
+      if !next_el || (next_el.text? && next_el.text.strip != '')
+        next
+      end
+      next_el = br_el.next_element
+      if next_el && next_el.name == 'br'
+        next_el.unlink
+      end
+    end
     contents_element.search('p + br').each {|br_el| br_el.unlink}
     contents_element.search('div + br').each {|br_el| br_el.unlink}
     contents_element.search('hr + br').each {|br_el| br_el.unlink}
@@ -107,57 +124,7 @@ module OldMagicArticleScraper
     contents_element.search('h1 + br').each {|br_el| br_el.unlink}
     contents_element.search('h2 + br').each {|br_el| br_el.unlink}
     contents_element.search('h3 + br').each {|br_el| br_el.unlink}
-    ## No need for breaks after an hr
-    #contents_element.search('hr').each do |hr_el|
-    #  remove_breaks(hr_el)
-    #end
-    ## Similarly for img
-    #contents_element.search('img').each do |img_el|
-    #  remove_breaks(img_el)
-    #end
-    #contents_element.search('h3').each { |h_el| remove_breaks(h_el) }
-    #contents_element.search('div').each { |h_el| remove_breaks(h_el) }
-    #contents_element.search('ul').each do |ul_el|
-    #  if ul_el.first_element_child && ul_el.first_element_child.name == 'li'
-    #  else
-    #    ul_el.name = 'p'
-    #  end
-    #end
-    #contents_element.search('pre').each do |pre_el|
-    #  if pre_el.first_element_child && pre_el.first_element_child.name == 'img'
-    #    pre_el.replace(pre_el.inner_html)
-    #  end
-    #end
-  end
-
-  def self.remove_breaks(element)
-    next_el = element.next
-    while (next_el)
-      if next_el.element? && next_el.name == 'br'
-        to_remove = next_el
-        next_el = next_el.next
-        to_remove.unlink
-        next
-      elsif next_el.text? && next_el.text.strip == ''
-        next_el = next_el.next
-        next
-      else
-        break
-      end
-    end
-    prev_el = element.previous
-    while (prev_el)
-      if prev_el.element? && prev_el.name == 'br'
-        to_remove = prev_el
-        prev_el = prev_el.previous
-        next
-      elsif prev_el.text? && prev_el.text.strip == ''
-        prev_el = prev_el.previous
-        next
-      else
-        break
-      end
-    end
+    contents_element.search('table + br').each {|br_el| br_el.unlink}
   end
 
   def self.get_contents(page)
@@ -179,7 +146,7 @@ module OldMagicArticleScraper
     end
   end
 
-  def self.get_headers(page)
+  def self.get_headers(page, url)
     description = page.at('#content .description')
     title = description.at('h4').text.strip
 
@@ -207,9 +174,11 @@ module OldMagicArticleScraper
     end
 
     #bio_e = page.at('article .article-header #author-biography')
-    #if bio_e
-    #  author_bio = PandocRuby.convert(bio_e.to_html, :from=>:html, :to=>:markdown).strip
-    #end
+    bio_e = page.at('#content .article-content table+p')
+    if bio_e
+      author_bio = PandocRuby.convert(bio_e.to_html, :from=>:html, :to=>:markdown).strip
+      bio_e.parent.unlink
+    end
 
     prologue = get_prologue(page.at('#content .article-content'))
     
@@ -225,13 +194,13 @@ module OldMagicArticleScraper
     if author_pic && author_pic != ''
       headers['author-pic'] = author_pic
     end
-    #if author_bio && author_bio != ''
-    #  headers['author-bio'] = author_bio + "\n"
-    #end
+    if author_bio && author_bio != ''
+      headers['author-bio'] = author_bio + "\n"
+    end
     if prologue && prologue != ''
       headers['prologue'] = prologue + "\n"
     end
-    headers['original-url'] = page.uri.to_s
+    headers['original-url'] = url
     return headers
   end
 
