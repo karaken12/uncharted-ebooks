@@ -1,7 +1,6 @@
-{% assign book = page.book %}
 <?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-
+{% assign book = page.book %}
 <head>
     <meta name="dtb:uid" content="{{ book.uid }}"/>
     <meta name="dtb:depth" content="1"/>

@@ -41,36 +41,25 @@ module Uncharted
 
   class Generator < Jekyll::Generator
     def generate(site)
-      book_dir = 'books/origins'
-      data = {
-        'uid' => 'b1bda1ee-2567-11e5-b345-feff819cdc9f',
-        'title' => 'Uncharted Realms: Magic Origins',
-        'authors' => [ "The Magic Creative Team", "Jenna Helland", "Doug Beyer", "James Wyatt", "Kelly Digges", "Ari Levitch" ],
-        'rights' => "Copyright Wizards of the Coast, all rights reserved.",
-        'publisher' => "Wizards of the Coast",
-        'chapters' => [
-          { 'id'    => 'magic-origins-new-era',
-            'title' => 'Magic Origins: A New Era',
-            'src'   => "2015-06-03-magic-origins-new-era.xhtml" },
-          { 'id'    => "chandras-origin-fire-logic",
-            'title' => "Chandra's Origin: Fire Logic",
-            'src'   => "2015-06-10-chandras-origin-fire-logic.xhtml" },
-          { 'id'    => "lilians-origin-fourth-pact",
-            'title' => "Liliana's Origin: The Fourth Pact",
-            'src'   => "2015-06-17-lilianas-origin-fourth-pact.xhtml" },
-          { 'id'    => "jaces-origin-absent-minds",
-            'title' => "Jace's Origin: Absent Minds",
-            'src'   => "2015-06-24-jaces-origin-absent-minds.xhtml" },
-          { 'id'    => "gideons-origin-kytheon-iora-akros",
-            'title' => "Gideon's Origin: Kytheon Iora of Akros",
-            'src'   => "2015-07-01-gideons-origin-kytheon-iora-akros.xhtml" }
-        ]
-      }
-      # TODO: add the Title page onto the front of the chapter list
-      site.pages << StaticContent.new(site, site.source, book_dir, 'mimetype')
-      site.pages << StaticContent.new(site, site.source, book_dir + '/META-INF', 'container.xml')
-      site.pages << BookToc.new(site, site.source, book_dir + '/OEBPS', data)
-      site.pages << BookContentOpf.new(site, site.source, book_dir + '/OEBPS', data)
+      site.categories.each do |name, posts|
+        book_dir = File.join('books',name)
+        data = site.data['books'][name]
+        chapters = posts.sort{|x,y| x.date <=> y.date}.map do |post|
+          { 'id'    => post.slug,
+            'title' => post.title,
+            'src'   => post.url.sub(/^\/books\/origins\/OEBPS\//,'')
+          }
+        end
+        authors = posts.map{|post| post.data['author']}.sort
+        authors.unshift("The Magic Creative Team")
+        data['chapters'] = chapters
+        data['authors'] = authors.uniq
+        # TODO: add the Title page onto the front of the chapter list
+        site.pages << StaticContent.new(site, site.source, book_dir, 'mimetype')
+        site.pages << StaticContent.new(site, site.source, File.join(book_dir, 'META-INF'), 'container.xml')
+        site.pages << BookToc.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
+        site.pages << BookContentOpf.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
+      end
     end
   end
 end
