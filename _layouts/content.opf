@@ -1,0 +1,31 @@
+{% assign book = page.book %}
+<?xml version="1.0" encoding="UTF-8"??>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="2.0" >
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <dc:title>{{ book.title }}</dc:title>
+        {% for author in book.authors %}
+        <dc:creator opf:role="aut">{{ author }}</dc:creator>
+        {% endfor %}
+        <dc:language>en-US</dc:language> 
+        <dc:rights>{{ book.rights }}</dc:rights> 
+        <dc:publisher>{{ book.publisher }}</dc:publisher> 
+        <dc:identifier id="BookID" opf:scheme="UUID">{{ book.uid }}</dc:identifier>
+    </metadata>
+    <manifest>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+<!--
+        <item id="style" href="stylesheet.css" media-type="text/css" />
+        <item id="pagetemplate" href="page-template.xpgt" media-type="application/vnd.adobe-page-template+xml" />
+        <item id="imgl" href="images/sample.png" media-type="image/png" />
+        <item id="titlepage" href="title_page.xhtml" media-type="application/xhtml+xml" />
+-->
+        {% for chapter in book.chapters %}
+        <item id="{{ chapter.id }}" href="{{ chapter.src }}" media-type="application/xhtml+xml" />
+        {% endfor %}
+    </manifest>
+    <spine toc="ncx">
+        {% for chapter in book.chapters %}
+        <itemref idref="{{ chapter.id }}" />
+        {% endfor %}
+    </spine>
+</package>

@@ -1,0 +1,26 @@
+{% assign book = page.book %}
+<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+
+<head>
+    <meta name="dtb:uid" content="{{ book.uid }}"/>
+    <meta name="dtb:depth" content="1"/>
+    <meta name="dtb:totalPageCount" content="0"/>{%comment%} ??? {%endcomment%}
+    <meta name="dtb:maxPageNumber" content="0"/>{%comment%} ??? {%endcomment%}
+</head>
+
+<docTitle>
+    <text>{{ book.title }}</text>
+</docTitle>
+
+<navMap>
+{% for chapter in book.chapters %}
+  <navPoint id="{{ chapter.id }}" playOrder="{{ forloop.index }}">
+    <navLabel>
+        <text>{{ chapter.title }}</text>
+    </navLabel>
+    <content src="{{ chapter.src }}"/>
+  </navPoint>
+{% endfor %}
+</navMap>
+</ncx>
