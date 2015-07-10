@@ -10,6 +10,9 @@ if image_data == nil then image_data = {} end
 PandocFilter.filter do |type, value|
   if type == 'Image'
     url = value[1][0]
+    # Only care about remote URLs
+    if !url.start_with?('http') then next end
+
 #    file.puts url
 #    url = "/images/#{url}"
     id = nil
