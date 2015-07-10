@@ -2,6 +2,7 @@
 
 require 'yaml'
 require 'pandoc-filter'
+require 'uri'
 
 #file = File.open('urls.tmp','w')
 image_data = YAML.load_file('_data/images.yml')
@@ -22,7 +23,9 @@ PandocFilter.filter do |type, value|
       while (id == nil || image_data.has_value?(id))
         id = ('a'..'z').to_a.shuffle[0,8].join
       end
-      id = "#{id}#{File.extname(url)}"
+      ext = File.extname(URI.parse(url).path)
+      if ext == '.ashx' then ext = '.jpeg' end
+      id = "#{id}#{ext}"
       image_data[url] = id
     end
 
