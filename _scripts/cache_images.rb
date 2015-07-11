@@ -4,7 +4,6 @@ require 'yaml'
 require 'pandoc-filter'
 require 'uri'
 
-#file = File.open('urls.tmp','w')
 image_data = YAML.load_file('_data/images.yml')
 if image_data == nil then image_data = {} end
 
@@ -14,8 +13,6 @@ PandocFilter.filter do |type, value|
     # Only care about remote URLs
     if !url.start_with?('http') then next end
 
-#    file.puts url
-#    url = "/images/#{url}"
     id = nil
     if image_data.has_key?(url)
       id = image_data[url]
