@@ -16,6 +16,7 @@ layout: default
         <h2>
           <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
         </h2>
+        <a href="{{ post.original-url }}" target="_blank">View on Wizards.com.</a>
       </li>
     {% endfor %}
   </ul>
