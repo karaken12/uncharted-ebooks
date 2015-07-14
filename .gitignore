@@ -2,3 +2,4 @@ _site
 .sass-cache
 _log
 _images
+_data/image_map.yml
