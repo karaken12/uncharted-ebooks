@@ -9,5 +9,5 @@
 #echo "zip -X9Dr \"../${1}.epub\" META-INF OEBPS"
 cd "_site/books/$1"
 rm "../${1}.epub"
-zip -X0 "../${1}.epub" mimetype
-zip -X9Dr "../${1}.epub" META-INF OEBPS
+zip -qX0 "../${1}.epub" mimetype
+zip -qX9Dr "../${1}.epub" META-INF OEBPS
