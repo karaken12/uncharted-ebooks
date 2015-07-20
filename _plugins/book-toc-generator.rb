@@ -149,7 +149,7 @@ module Uncharted
         chapters = posts.sort{|x,y| x.date <=> y.date}.map do |post|
           { 'id'    => post.slug,
             'title' => post.title,
-            'src'   => post.url.sub(/^\/books\/origins\/OEBPS\//,'')
+            'src'   => post.url.sub(/^\/books\/#{name}\/OEBPS\//,'')
           }
         end
         authors = posts.map{|post| post.data['author']}.sort
