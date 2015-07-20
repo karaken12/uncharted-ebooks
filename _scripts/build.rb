@@ -22,7 +22,14 @@ def build_book(book_name)
 end
 
 def make_epub(book_name)
-  return system("_scripts/build_epub.sh #{book_name}")
+  Dir.chdir("_site/books/#{book_name}") do
+    file_name = "../#{book_name}.epub"
+    if File.exist?(file_name)
+      File.delete(file_name)
+    end
+    `zip -qX0 "#{file_name}" mimetype`
+    `zip -qX9Dr "#{file_name}" META-INF OEBPS`
+  end
 end
 
 def check_epub(book_name)
