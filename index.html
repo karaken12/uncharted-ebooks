@@ -4,7 +4,13 @@ layout: default
 
 <div class="home">
 
-  <p>Ebook: <a href="{{site.baseurl}}/files/ebook.epub">Ebook</a></p>
+  <h2>Ebooks</h2>
+  <ul>
+    {% for book in site.categories %}
+      {% assign bookname = book[0] %}
+      <li><a href="{{site.baseurl}}/books/{{bookname}}.epub">{{bookname}}</a></li>
+    {% endfor %}
+  </ul>
 
   <h1 class="page-heading">Posts</h1>
 

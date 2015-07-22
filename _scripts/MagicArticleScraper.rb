@@ -126,6 +126,7 @@ module MagicArticleScraper
     
     headers = {}
     headers['layout'] = 'chapter'
+    headers['category'] = nil
     headers['title'] = title
     if author && author != ''
       headers['author'] = author

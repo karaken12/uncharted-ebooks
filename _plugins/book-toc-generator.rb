@@ -125,6 +125,11 @@ module Uncharted
       end
 
       site.categories.each do |name, posts|
+        data = site.data['books'][name]
+        if !data
+          puts "Could not generate book #{name}: no data!"
+          next
+        end
         book_dir = File.join('books',name)
         images = []
 
@@ -145,7 +150,6 @@ module Uncharted
         images = images.uniq
         images.each_with_index{|image,index| image['id'] = "img#{index}"}
 
-        data = site.data['books'][name]
         chapters = posts.sort{|x,y| x.date <=> y.date}.map do |post|
           { 'id'    => post.slug,
             'title' => post.title,
