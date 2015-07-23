@@ -1,7 +1,12 @@
 #!/usr/bin/env ruby
 
+require_relative('image_list')
+
 def build_site
   # First things first...
+  # Update the image map for those files that need it.
+  ImageList::update_changed
+  # Now actually build the data.
   if system('jekyll build') == false
     puts "Failed to build site; aborting."
   else
