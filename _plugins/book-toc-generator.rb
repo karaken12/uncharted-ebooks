@@ -137,7 +137,7 @@ module Uncharted
         site.static_files << StaticContent.new(site, site.source, File.join(book_dir, 'META-INF'), 'container.xml')
 
         # Get all the images used by the stories in this book.
-        posts.each.map{|post| post.data['images']}.flatten.uniq.each do |image|
+        posts.each.map{|post| post.data['images']}.compact.flatten.uniq.each do |image|
           images.push( {
             'href'   => image,
             'format' => get_format(File.extname(image))
