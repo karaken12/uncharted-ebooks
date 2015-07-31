@@ -4,11 +4,31 @@ require 'yaml'
 
 module PandocFilter
 
+  def self.get_frontmatter(filename)
+    frontmatter = YAML.load_file(filename)
+    data = nil
+    IO.popen('pandoc -t markdown -s', 'r+') {|f| # don't forget 'r+'
+      f.puts(frontmatter.to_yaml) # you can also use #write
+      # Pandoc needs this to know it's frontmatter
+      f.puts('---')
+      f.close_write
+      data = f.read # get the data from the pipe
+    }
+    data = YAML.load(data)
+    ['author-bio', 'prologue'].each do |key|
+      if data.has_key?(key)
+        frontmatter[key] = data[key]
+      end
+    end
+    return frontmatter
+  end
+
   def self.pandoc_rewrite(filename, filter = nil)
 
     tmpfilename = "#{filename}.tmp"
+
     # First load the YAML frontmatter
-    frontmatter = YAML.load_file(filename)
+    frontmatter = get_frontmatter(filename)
 
     `pandoc -t markdown #{("--filter \"#{filter}\"") if filter} -o "#{tmpfilename}" "#{filename}"`
 
