@@ -11,5 +11,5 @@ twitter_username: jekyllrb
 github_username:  jekyll
 
 # Build settings
-markdown: kramdown
+markdown: XhtmlKramdown
 permalink: "/books/:categories/OEBPS/:year-:month-:day-:title.xhtml"
