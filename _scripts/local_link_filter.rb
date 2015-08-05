@@ -9,7 +9,7 @@ if link_data == nil || link_data == '' then link_data = {} end
 
 PandocFilter.filter do |type, value|
   if type == 'Link'
-    url = value[1][0]
+    url = value[1][0].downcase
     # Only care about remote URLs
     if !url.start_with?('http') then next end
 

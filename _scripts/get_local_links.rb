@@ -8,7 +8,7 @@ if link_data == nil || link_data == '' then link_data = {} end
 Dir.glob("_posts/*").each do |filepath|
   original_url = YAML.load_file(filepath)['original-url']
   if original_url
-    link_data[original_url] = "#{File.basename(filepath, '.*')}.xhtml"
+    link_data[original_url.downcase] = "#{File.basename(filepath, '.*')}.xhtml"
   end
 end
 

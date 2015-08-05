@@ -4,22 +4,15 @@ require 'yaml'
 
 module PandocFilter
 
-  def self.get_frontmatter(filename)
+  def self.get_frontmatter(filename, filter = nil)
     frontmatter = YAML.load_file(filename)
-    data = nil
-    IO.popen('pandoc -t markdown -s', 'r+') {|f| # don't forget 'r+'
-      f.puts(frontmatter.to_yaml) # you can also use #write
-      # Pandoc needs this to know it's frontmatter
-      f.puts('---')
-      f.close_write
-      data = f.read # get the data from the pipe
-    }
-    data = YAML.load(data)
+
     ['author-bio', 'prologue'].each do |key|
-      if data.has_key?(key)
-        frontmatter[key] = data[key]
+      if frontmatter.has_key?(key)
+        frontmatter[key] = pandoc_process(frontmatter[key], filter)
       end
     end
+
     return frontmatter
   end
 
@@ -28,7 +21,7 @@ module PandocFilter
     tmpfilename = "#{filename}.tmp"
 
     # First load the YAML frontmatter
-    frontmatter = get_frontmatter(filename)
+    frontmatter = get_frontmatter(filename, filter)
 
     `pandoc -t markdown #{("--filter \"#{filter}\"") if filter} -o "#{tmpfilename}" "#{filename}"`
 
@@ -45,6 +38,15 @@ module PandocFilter
 
     `_scripts/replace_hr.sh "#{filename}"`
   end
+
+  def self.pandoc_process(data, filter = nil)
+    IO.popen("pandoc -t markdown #{("--filter \"#{filter}\"") if filter}", 'r+') do |f|
+      f.puts(data)
+      f.close_write
+      f.read # get the data from the pipe
+    end
+  end
+
 end
 
 if __FILE__ == $0
