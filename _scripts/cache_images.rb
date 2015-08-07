@@ -7,11 +7,19 @@ require 'uri'
 image_data = YAML.load_file('_data/images.yml')
 if image_data == nil then image_data = {} end
 
-PandocFilter.filter do |type, value|
+PandocFilter.filter do |type, value, format, meta|
   if type == 'Image'
     url = value[1][0]
     # Only care about remote URLs
-    if !url.start_with?('http') then next end
+    if !url.start_with?('http')
+      if url.start_with?('/')
+        # Prepend the original URL data...
+        url = URI.join(meta['original-url']['c'][0]['c'], url).to_s
+      else
+        # Don't know how to handle it, so just go onto the next one
+        next
+      end
+    end
 
     id = nil
     if image_data.has_key?(url)

@@ -106,6 +106,12 @@ module OldMagicArticleScraper
         img_el.replace(match[1])
       end
     end
+    # Get rid of divs with just an image
+    contents_element.search('div').each do |div_el|
+      if div_el.first_element_child && div_el.first_element_child.name == 'img'
+        div_el.replace('<p>' + div_el.inner_html + '</p>')
+      end
+    end
     #contents_element.search('br + br').each {|br_el| br_el.unlink}
     contents_element.search('br').each do |br_el|
       next_el = br_el.next
@@ -177,13 +183,14 @@ module OldMagicArticleScraper
     bio_e = page.at('#content .article-content table+p')
     if bio_e
       author_bio = PandocRuby.convert(bio_e.to_html, :from=>:html, :to=>:markdown).strip
-      bio_e.parent.unlink
+      bio_e.unlink
     end
 
     prologue = get_prologue(page.at('#content .article-content'))
     
     headers = {}
     headers['layout'] = 'chapter'
+    headers['category'] = nil
     headers['title'] = title
     if date && date != ''
       headers['date'] = date
