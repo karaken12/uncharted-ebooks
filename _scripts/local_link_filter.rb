@@ -13,12 +13,19 @@ PandocFilter.filter do |type, value|
     # Only care about remote URLs
     if !url.start_with?('http') then next end
 
+    fragment = URI.parse(url).fragment
+    if fragment
+      url = url.gsub(/##{fragment}$/,'')
+    end
     local_path = nil
     if !link_data.has_key?(url)
       next
     end
 
     local_path = link_data[url]
+    if fragment
+      local_path = "#{local_path}##{fragment}"
+    end
 
     new = value[1]
     new[0] = local_path
