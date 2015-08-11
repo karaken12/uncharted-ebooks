@@ -2,7 +2,7 @@
 
 require 'yaml'
 require 'pandoc-filter'
-require 'uri'
+require 'addressable/uri'
 
 link_data = YAML.load_file('_data/local_links.yml')
 if link_data == nil || link_data == '' then link_data = {} end
@@ -13,7 +13,7 @@ PandocFilter.filter do |type, value|
     # Only care about remote URLs
     if !url.start_with?('http') then next end
 
-    fragment = URI.parse(url).fragment
+    fragment = Addressable::URI.parse(url).fragment
     if fragment
       url = url.gsub(/##{fragment}$/,'')
     end
