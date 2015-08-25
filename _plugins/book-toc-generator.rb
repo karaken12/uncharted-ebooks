@@ -14,6 +14,20 @@ module Uncharted
     end
   end
 
+  class BookIndex < Jekyll::Page
+    def initialize(site, base, dir, data)
+      @site = site
+      @base = base
+      @dir = dir
+      @name = 'index.html'
+
+      self.process(@name)
+      self.read_yaml(File.join(base, '_layouts'), 'index.html')
+
+      self.data['book'] = data
+    end
+  end
+
   class BookContentOpf < Jekyll::Page
     def initialize(site, base, dir, data)
       @site = site
@@ -130,6 +144,8 @@ module Uncharted
           puts "Could not generate book #{name}: no data!"
           next
         end
+        data['name'] = name
+        data['posts'] = posts.reverse
         book_dir = File.join('books',name)
         images = []
 
@@ -163,6 +179,7 @@ module Uncharted
         data['images'] = images
         # TODO: add the Title page onto the front of the chapter list
         site.pages << BookToc.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
+        site.pages << BookIndex.new(site, site.source, book_dir, data)
         site.pages << BookContentOpf.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
         site.pages << MovedPage.new(site, site.source, '/css', 'main.scss', File.join(book_dir, 'OEBPS', 'styles', 'main.css'))
       end

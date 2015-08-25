@@ -1,0 +1,26 @@
+---
+layout: default
+---
+
+<div class="home">
+
+  <a href="{{site.baseurl}}/books/{{page.book.name}}.epub">{{page.book.name}}</a>
+
+  <h1 class="page-heading">Posts</h1>
+
+  <p>{{ page.book.posts | size }} chapters</p>
+
+  <ul class="post-list">
+    {% for post in page.book.posts %}
+      <li>
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+
+        <h2>
+          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+        </h2>
+        <a href="{{ post.original-url }}" target="_blank">View on Wizards.com.</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+</div>
