@@ -23,7 +23,7 @@ module PandocFilter
     # First load the YAML frontmatter
     frontmatter = get_frontmatter(filename, filter)
 
-    `pandoc -t markdown #{("--filter \"#{filter}\"") if filter} -o "#{tmpfilename}" "#{filename}"`
+    `pandoc --atx-headers -t markdown-grid_tables-simple_tables+pipe_tables+multiline_tables #{("--filter \"#{filter}\"") if filter} -o "#{tmpfilename}" "#{filename}"`
 
     `rm "#{filename}"`
 
@@ -40,7 +40,8 @@ module PandocFilter
   end
 
   def self.pandoc_process(data, filter = nil)
-    IO.popen("pandoc -t markdown #{("--filter \"#{filter}\"") if filter}", 'r+') do |f|
+    cmd = "pandoc --atx-headers -t markdown-grid_tables-simple_tables+pipe_tables+multiline_tables #{("--filter \"#{filter}\"") if filter}"
+    IO.popen(cmd, 'r+') do |f|
       f.puts(data)
       f.close_write
       f.read # get the data from the pipe
