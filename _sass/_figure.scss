@@ -1,0 +1,16 @@
+
+.figure {
+  max-width: 750px;
+  margin: 0 auto 15px auto;
+
+  p {
+    margin: 0;
+    text-align: center;
+  }
+
+  p + p {
+    text-align: right;
+    font-size: 75%;
+    font-weight: bold;
+  }
+}

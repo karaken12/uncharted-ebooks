@@ -13,3 +13,6 @@ github_username:  jekyll
 # Build settings
 markdown: XhtmlKramdown
 permalink: "/books/:categories/OEBPS/:year-:month-:day-:title.xhtml"
+
+kramdown:
+  parse_block_html: true
