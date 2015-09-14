@@ -1,0 +1,14 @@
+---
+layout: default
+---
+
+  <h1>Books</h1>
+  <ul>
+    {% for book in site.categories %}
+      {% assign bookname = book[0] %}
+      <li>
+        <a href="{{site.baseurl}}/books/{{bookname}}/">{{site.data.books[bookname].title}}</a>
+        (<a href="{{site.baseurl}}/books/{{bookname}}.epub">ebook</a>)
+      </li>
+    {% endfor %}
+  </ul>

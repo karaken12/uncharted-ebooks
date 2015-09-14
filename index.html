@@ -4,11 +4,11 @@ layout: default
 
 <div class="home">
 
-  <h2>Ebooks</h2>
+  <h2>Books</h2>
   <ul>
     {% for book in site.categories %}
       {% assign bookname = book[0] %}
-      <li><a href="{{site.baseurl}}/books/{{bookname}}.epub">{{bookname}}</a></li>
+      <li><a href="{{site.baseurl}}/books/{{bookname}}/">{{bookname}}</a></li>
     {% endfor %}
   </ul>
 
@@ -27,6 +27,10 @@ layout: default
     {% endfor %}
   </ul>
 
-  <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
+  <ul>
+    {% for post in site.posts %}
+      <li>{{ post.date | date: "%Y-%m-%d (%A)" }}</li>
+    {% endfor %}
+  </ul>
 
 </div>
