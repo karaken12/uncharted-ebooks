@@ -14,3 +14,25 @@
     font-weight: bold;
   }
 }
+
+.figure-right {
+  max-width: 50%;
+  margin: 5px 0 5px 10px;
+  float: right;
+
+  p {
+    margin: 0;
+    text-align: right;
+  }
+}
+
+.figure-left {
+  max-width: 50%;
+  margin: 5px 10px 5px 0;
+  float: left;
+
+  p {
+    margin: 0;
+    text-align: left;
+  }
+}
