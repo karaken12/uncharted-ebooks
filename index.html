@@ -6,9 +6,10 @@ layout: default
 
   <h2>Books</h2>
   <ul>
-    {% for book in site.categories %}
-      {% assign bookname = book[0] %}
-      <li><a href="{{site.baseurl}}/books/{{bookname}}/">{{bookname}}</a></li>
+    {% for book_hash in site.categories %}
+      {% assign bookname = book_hash[0] %}
+      {% assign book = site.data.books[bookname] %}
+      <li><a href="{{site.baseurl}}/books/{{bookname}}/">{%if book.short_title%}{{book.short_title}}{%else%}{{book.title}}{%endif%}</a></li>
     {% endfor %}
   </ul>
 
