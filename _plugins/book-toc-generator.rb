@@ -28,6 +28,20 @@ module Uncharted
     end
   end
 
+  class BookContents < Jekyll::Page
+    def initialize(site, base, dir, data)
+      @site = site
+      @base = base
+      @dir = dir
+      @name = 'contents.xhtml'
+
+      self.process(@name)
+      self.read_yaml(File.join(base, '_layouts'), 'contents.xhtml')
+
+      self.data['book'] = data
+    end
+  end
+
   class BookContentOpf < Jekyll::Page
     def initialize(site, base, dir, data)
       @site = site
@@ -151,6 +165,7 @@ module Uncharted
 
         site.static_files << StaticContent.new(site, site.source, book_dir, 'mimetype')
         site.static_files << StaticContent.new(site, site.source, File.join(book_dir, 'META-INF'), 'container.xml')
+        site.static_files << StaticContent.new(site, site.source, File.join(book_dir, 'OEBPS', 'styles'), 'page-template.xpgt')
 
         # Get all the images used by the stories in this book.
         posts.each.map{|post| post.data['images']}.compact.flatten.uniq.each do |image|
@@ -180,6 +195,7 @@ module Uncharted
         # TODO: add the Title page onto the front of the chapter list
         site.pages << BookToc.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
         site.pages << BookIndex.new(site, site.source, book_dir, data)
+        site.pages << BookContents.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
         site.pages << BookContentOpf.new(site, site.source, File.join(book_dir, 'OEBPS'), data)
         site.pages << MovedPage.new(site, site.source, '/css', 'main.scss', File.join(book_dir, 'OEBPS', 'styles', 'main.css'))
       end

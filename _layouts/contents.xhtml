@@ -1,0 +1,18 @@
+---
+layout: book_default
+---
+
+<div class="home">
+  <h1 class="page-heading">Contents</h1>
+
+  <ul class="post-list">
+    {% for post in page.book.posts %}
+      <li>
+        <h2>
+          <a class="post-link" href="./{{ post.url | split:"/" | last }}">{{ post.title }}</a>
+        </h2>
+      </li>
+    {% endfor %}
+  </ul>
+
+</div>
