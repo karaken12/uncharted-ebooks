@@ -1,0 +1,5 @@
+---
+- name: grayscale
+  options: '-set colorspace RGB -colorspace gray'
+- name: color
+  options: '-quality 50%'

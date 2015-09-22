@@ -11,6 +11,7 @@ def build_site
     puts "Failed to build site; aborting."
   else
     Dir.glob('_site/books/*').each do |path|
+      if !File.directory?(path) then next end
       book_name = File.basename(path)
       puts "===\nBuilding book #{book_name}"
       build_book(book_name)
@@ -28,17 +29,18 @@ end
 
 def make_epub(book_name)
   Dir.chdir("_site/books/#{book_name}") do
-    file_name = "../#{book_name}.epub"
+    file_name = "../../../books/#{book_name}.epub"
     if File.exist?(file_name)
       File.delete(file_name)
     end
     `zip -qX0 "#{file_name}" mimetype`
     `zip -qX9Dr "#{file_name}" META-INF OEBPS`
+    `cp #{file_name} ..`
   end
 end
 
 def check_epub(book_name)
-  return system("epubcheck _site/books/#{book_name}.epub")
+  return system("epubcheck books/#{book_name}.epub")
 end
 
 build_site

@@ -1,10 +1,16 @@
 #!/usr/bin/env ruby
 
+require 'yaml'
+
+profiles = YAML.load_file('_data/image-profiles.yml')
+
 Dir.new('_images/original').each do |fname|
   infilepath = File.join('_images','original',fname)
-  outfilepath = File.join('_images','grayscale',fname)
-  if !File.exists?(outfilepath)
-    puts "convert -set colorspace RGB -colorspace gray \"#{infilepath}\" \"#{outfilepath}\""
-    `convert -set colorspace RGB -colorspace gray "#{infilepath}" "#{outfilepath}"`
+  profiles.each do |profile|
+    outfilepath = File.join('_images', profile['name'], fname)
+    if !File.exists?(outfilepath)
+      puts "convert #{profile['options']} \"#{infilepath}\" \"#{outfilepath}\""
+      `convert #{profile['options']} "#{infilepath}" "#{outfilepath}"`
+    end
   end
 end

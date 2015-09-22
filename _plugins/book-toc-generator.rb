@@ -151,6 +151,7 @@ module Uncharted
       site.posts.each do |post|
         post.data['images'] = image_data["_posts/#{post.name}"]
       end
+      image_profile = 'color'
 
       site.categories.each do |name, posts|
         data = site.data['books'][name]
@@ -175,7 +176,7 @@ module Uncharted
           })
           filename = image.gsub(/^images\//,'')
           link_name = File.join(book_dir, 'OEBPS', 'images', filename)
-          target = File.join('_images', 'grayscale', filename)
+          target = File.join('_images', image_profile, filename)
           site.static_files << LinkedContent.new(site, site.source, File.join(book_dir, 'OEBPS', 'images'), target, filename)
         end
         images = images.uniq
