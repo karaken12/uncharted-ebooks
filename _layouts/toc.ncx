@@ -13,8 +13,14 @@
 </docTitle>
 
 <navMap>
+  <navPoint id="navpoint-1" playOrder="1">
+    <navLabel>
+      <text>Contents</text>
+    </navLabel>
+    <content src="contents.xhtml"/>
+  </navPoint>
 {% for chapter in book.chapters %}
-  <navPoint id="{{ chapter.id }}" playOrder="{{ forloop.index }}">
+  <navPoint id="navpoint-{{ forloop.index | plus:1 }}" playOrder="{{ forloop.index | plus:1 }}">
     <navLabel>
         <text>{{ chapter.title }}</text>
     </navLabel>

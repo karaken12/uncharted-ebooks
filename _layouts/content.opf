@@ -27,6 +27,7 @@
         {% endfor %}
     </manifest>
     <spine toc="ncx">
+        <itemref idref="contents" />
         {% for chapter in book.chapters %}
         <itemref idref="{{ chapter.id }}" />
         {% endfor %}
